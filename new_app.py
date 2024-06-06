@@ -85,7 +85,7 @@ app.layout = html.Div(style={'backgroundColor': '#ffffff', 'boxSizing': 'border-
             ], style={'display': 'none'}),
             html.Label('Optimization Criteria:', style={'margin': '5px', 'color': '#555555'}),
             dcc.Dropdown(id='optimization-criteria', options=optimization_options, value='total_time', style={'margin': '5px'}),
-            html.Button('Calculate Travel Time', id='calculate-button', n_clicks=0, style={'margin': '5px', 'background-color': '#74bf0c', 'color': 'white', 'font-weight': 'bold'}),
+            html.Button('Calculate Travel Time', id='calculate-button', n_clicks=0, style={'margin': '5px', 'background-color': '#74bf0c', 'color': 'black', 'font-weight': 'bold'}),
             html.Button('Start Over', id='start-over-button', n_clicks=0, style={'margin': '5px', 'background-color': '#D9534F', 'color': 'white', 'font-weight': 'bold'})
         ], style={'width': '50%', 'display': 'inline-block', 'padding': '20px', 'background-color': '#eaeaea', 'boxSizing': 'border-box'}),
         html.Div([
