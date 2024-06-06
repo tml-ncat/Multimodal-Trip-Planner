@@ -43,7 +43,11 @@ A Plotly interface to show route and travel itinerary details for different tran
     - Select the transport mode.
     - View the detailed itinerary and route on the map.
 
-## [R5py documentation](https://r5py.readthedocs.io/en/stable/user-guide/user-manual/quickstart.html)
+## Documentation
+[R5py](https://r5py.readthedocs.io/en/stable/user-guide/user-manual/quickstart.html)
+[Dash](https://dash.plotly.com/tutorial)
+[Geopandas](https://geopandas.org/en/stable/docs.html)
+
 ## Features
 
 - Interactive map to display routes.
