@@ -91,11 +91,11 @@ app.layout = html.Div(style={'backgroundColor': '#ffffff', 'boxSizing': 'border-
         html.Div([
             html.Label('Select your transport mode:', style={'margin': '5px', 'color': '#555555'}),
             html.Div([
-                html.Button('Transit', id='mode-transit', n_clicks=0, style={'margin': '5px', 'background-color': '#93979C', 'color': 'white'}),
-                html.Button('Car', id='mode-car', n_clicks=0, style={'margin': '5px', 'background-color': '#93979C', 'color': 'white'}),
-                html.Button('Bike', id='mode-bike', n_clicks=0, style={'margin': '5px', 'background-color': '#93979C', 'color': 'white'}),
-                html.Button('Shared Ride', id='mode-shared-ride', n_clicks=0, style={'margin': '5px', 'background-color': '#93979C', 'color': 'white'}),
-                html.Button('Walk', id='mode-walk', n_clicks=0, style={'margin': '5px', 'background-color': '#93979C', 'color': 'white'}),
+                html.Button('Transit 🚌', id='mode-transit', n_clicks=0, style={'margin': '5px', 'background-color': '#93979C', 'color': 'white'}),
+                html.Button('Car 🚗', id='mode-car', n_clicks=0, style={'margin': '5px', 'background-color': '#93979C', 'color': 'white'}),
+                html.Button('Bike 🚲', id='mode-bike', n_clicks=0, style={'margin': '5px', 'background-color': '#93979C', 'color': 'white'}),
+                html.Button('Shared Ride 🚕', id='mode-shared-ride', n_clicks=0, style={'margin': '5px', 'background-color': '#93979C', 'color': 'white'}),
+                html.Button('Walk 🚶🏻', id='mode-walk', n_clicks=0, style={'margin': '5px', 'background-color': '#93979C', 'color': 'white'}),
             ], style={'display': 'flex', 'flex-wrap': 'wrap'}),
             html.Div(id='travel-time', style={'padding': '10px', 'background-color': '#f4f4f9', 'color': '#333333', 'text-align': 'center'})
         ], style={'width': '50%', 'display': 'inline-block', 'padding': '20px', 'background-color': '#eaeaea', 'boxSizing': 'border-box'}),
