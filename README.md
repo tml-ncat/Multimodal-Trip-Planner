@@ -45,7 +45,9 @@ A Plotly interface to show route and travel itinerary details for different tran
 
 ## Documentation
 [R5py](https://r5py.readthedocs.io/en/stable/user-guide/user-manual/quickstart.html)
+
 [Dash](https://dash.plotly.com/tutorial)
+
 [Geopandas](https://geopandas.org/en/stable/docs.html)
 
 ## Features
