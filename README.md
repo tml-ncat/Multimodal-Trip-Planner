@@ -51,10 +51,9 @@ A Plotly interface to show route and travel itinerary details for different tran
 - Responsive design for different devices.
 
 ## Example
-
+![Example Image](options.png)
 ![Example Image](Transit.png)
 ![Example Image](car.png)
-![Example Image](options.png)
 ![Example Image](shared.png)
 
 
