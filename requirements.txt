@@ -1,0 +1,21 @@
+# Create the environment
+conda create --name trip_planner python=3.9
+
+# Activate the environment
+conda activate trip_planner
+
+# Install packages with conda
+conda install pandas numpy geopandas -c conda-forge
+
+# Install packages with pip
+pip install dash plotly
+
+# Clone r5py repository and install from pyproject.toml
+git clone https://github.com/your-username/r5py.git
+cd r5py
+pip install -r pyproject.toml
+cd ..
+
+# Install ipykernel and create a kernel for your environment
+pip install ipykernel
+python -m ipykernel install --user --name trip_planner --display-name "Python (trip_planner)"
