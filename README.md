@@ -28,7 +28,14 @@ A Plotly interface to show route and travel itinerary details for different tran
     pip install -r requirements.txt
     ```
 
-4. **Run the application**:
+4. **Install r5py**:
+   ```bash
+   cd r5py
+   pip install -r pyproject.toml
+   cd ..
+   ```
+
+5. **Run the application**:
     ```bash
     python app.py
     ```
