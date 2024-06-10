@@ -13,7 +13,7 @@ A Plotly interface to show route and travel itinerary details for different tran
 
 1. **Clone the repository**:
     ```bash
-    git clone https://github.com/your-username/r5py.git
+    git clone https://github.com/r5py/r5py.git
     cd r5py
     ```
 
@@ -35,8 +35,14 @@ A Plotly interface to show route and travel itinerary details for different tran
    cd ..
    ```
 
-5. **Run the application**:
+5.**Clone the Trip Planner repository**:
     ```bash
+    git clone https://github.com/RidwanTiamiyu/Multimodal-Trip-Planner.git
+    cd Multimodal-Trip-Planner
+    ```
+6. **Run the application**:
+    ```bash
+    cd src/main
     python app.py
     ```
 
@@ -78,7 +84,7 @@ A Plotly interface to show route and travel itinerary details for different tran
 
 2. **Clone your fork**:
     ```bash
-    git clone https://github.com/your-username/r5py.git
+    git clone https://github.com/r5py/r5py.git
     cd r5py
     ```
 
