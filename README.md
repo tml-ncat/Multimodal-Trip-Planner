@@ -40,6 +40,7 @@ A Plotly interface to show route and travel itinerary details for different tran
     git clone https://github.com/RidwanTiamiyu/Multimodal-Trip-Planner.git
     cd Multimodal-Trip-Planner
     ```
+    
 6. **Run the application**:
     ```bash
     cd src/main
