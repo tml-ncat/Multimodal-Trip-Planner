@@ -1,6 +1,6 @@
 # Multimodal Trip Planner
 
-A Plotly interface to show route and travel itinerary details for different transport modes.
+A Plotly interface to show route and travel itinerary details for different transport modes building off the `r5py` library (Fink et al., 2022)
 
 ## Libraries needed
 1. Pandas
@@ -9,7 +9,7 @@ A Plotly interface to show route and travel itinerary details for different tran
 4. Geopandas
 5. Dash/Plotly
 
-## How to install
+## How to install r5py
 
 1. **Clone the repository**:
     ```bash
@@ -78,6 +78,10 @@ A Plotly interface to show route and travel itinerary details for different tran
 ![Example Image](images/shared.png)
 
 
+## Ongoing Work
+1. Work with multiple user criteria (costs, road slope, bike level of traffic stress, etc.)
+2. Incorporate combination of multiple travel modes (such as shared ride + fixed transit).
+
 ## Contributing
 
 1. **Fork the repository**:
@@ -114,5 +118,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Acknowledgments
 
 - Thanks to the authors of the libraries used in this project.
-- Special thanks to the contributors who improved this project.
+- Fink, C., Klumpenhouwer, W., Saraiva, M., Pereira, R., & Tenkanen, H. (2022). r5py: Rapid Realistic Routing with R5 in Python (0.0.4). Zenodo. https://doi.org/10.5281/zenodo.7060438
+- Special thanks to C2SMARTER, Tier-1 UTC for providing funds for the project.
 
