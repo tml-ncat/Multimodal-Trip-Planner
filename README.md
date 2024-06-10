@@ -35,7 +35,7 @@ A Plotly interface to show route and travel itinerary details for different tran
    cd ..
    ```
 
-5.**Clone the Trip Planner repository**:
+5. **Clone the Trip Planner repository**:
     ```bash
     git clone https://github.com/RidwanTiamiyu/Multimodal-Trip-Planner.git
     cd Multimodal-Trip-Planner
