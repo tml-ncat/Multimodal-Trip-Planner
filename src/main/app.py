@@ -1,4 +1,3 @@
-# Import necessary libraries
 from dash import Dash, html, dcc, Input, Output, State, callback_context, no_update
 import plotly.graph_objs as go
 import geopandas as gpd
@@ -7,11 +6,11 @@ import r5py
 from datetime import datetime, date, timedelta
 import numpy as np
 import pandas as pd
+import os
+import shutil
 
-# Initialize the Dash app
 app = Dash(__name__, external_stylesheets=['https://codepen.io/chriddyp/pen/bWLwgP.css'])
 
-# Define files
 gtfs_path = 'gtfs.zip'
 osm_path = 'durham_new.osm.pbf'
 transport_network = r5py.TransportNetwork(osm_path, [gtfs_path])
@@ -25,7 +24,6 @@ lat, lon = np.meshgrid(lat_points, lon_points)
 lat = lat.flatten()
 lon = lon.flatten()
 
-# Create a Scattermapbox figure with specific configurations
 fig = go.Figure(go.Scattermapbox(
     mode='markers',
     lon=lon,
@@ -35,7 +33,6 @@ fig = go.Figure(go.Scattermapbox(
     showlegend=False
 ))
 
-# Update the layout of the figure with mapbox style and settings
 fig.update_layout(
     mapbox={
         'style': "carto-positron",
@@ -46,19 +43,15 @@ fig.update_layout(
     clickmode='event+select'
 )
 
-# Create options for hours and minutes dropdowns
 hours_options = [{'label': f'{i:02d}', 'value': f'{i:02d}'} for i in range(24)]
 minutes_options = [{'label': f'{i:02d}', 'value': f'{i:02d}'} for i in range(0, 60, 5)]
-
-# Create options for optimization criteria dropdown
 optimization_options = [
     {'label': 'Total Time', 'value': 'total_time'},
     {'label': 'Number of Transfers', 'value': 'transfers'},
     {'label': 'Wait Time', 'value': 'wait_time'},
-    {'label': 'Walking Time', 'value': 'walking_time'}
+    {'label': 'Walking/Biking Distance', 'value': 'walking_biking_distance'}
 ]
 
-# Define the layout of the Dash application
 app.layout = html.Div(style={'backgroundColor': '#ffffff', 'boxSizing': 'border-box', 'padding': '10px'}, children=[
     html.Div([
         html.H1("Trip Planner", style={'textAlign': 'center', 'color': '#333333', 'padding': '10px', 'background-color': '#f4f4f9'}),
@@ -100,7 +93,8 @@ app.layout = html.Div(style={'backgroundColor': '#ffffff', 'boxSizing': 'border-
         html.Div([
             html.Label('Select your transport mode:', style={'margin': '5px', 'color': '#555555'}),
             html.Div([
-                html.Button('Transit 🚌', id='mode-transit', n_clicks=0, style={'margin': '5px', 'background-color': '#93979C', 'color': 'white'}),
+                html.Button('Transit + Walk 🚶🏻🚌', id='mode-transit-walk', n_clicks=0, style={'margin': '5px', 'background-color': '#93979C', 'color': 'white'}),
+                html.Button('Transit + Bike 🚲🚌', id='mode-transit-bike', n_clicks=0, style={'margin': '5px', 'background-color': '#93979C', 'color': 'white'}),
                 html.Button('Car 🚗', id='mode-car', n_clicks=0, style={'margin': '5px', 'background-color': '#93979C', 'color': 'white'}),
                 html.Button('Bike 🚲', id='mode-bike', n_clicks=0, style={'margin': '5px', 'background-color': '#93979C', 'color': 'white'}),
                 html.Button('Shared Ride 🚕', id='mode-shared-ride', n_clicks=0, style={'margin': '5px', 'background-color': '#93979C', 'color': 'white'}),
@@ -114,13 +108,13 @@ app.layout = html.Div(style={'backgroundColor': '#ffffff', 'boxSizing': 'border-
     ], style={'width': '100%', 'display': 'block', 'boxSizing': 'border-box'}),
 ])
 
-# Define callback function to update inputs and calculate travel time
 @app.callback(
     [Output('input-origin', 'value'),
      Output('input-destination', 'value'),
      Output('map-graph', 'figure'),
      Output('travel-time', 'children'),
-     Output('mode-transit', 'style'),
+     Output('mode-transit-walk', 'style'),
+     Output('mode-transit-bike', 'style'),
      Output('mode-car', 'style'),
      Output('mode-bike', 'style'),
      Output('mode-shared-ride', 'style'),
@@ -128,7 +122,8 @@ app.layout = html.Div(style={'backgroundColor': '#ffffff', 'boxSizing': 'border-
     [Input('map-graph', 'clickData'),
      Input('calculate-button', 'n_clicks'),
      Input('start-over-button', 'n_clicks'),
-     Input('mode-transit', 'n_clicks'),
+     Input('mode-transit-walk', 'n_clicks'),
+     Input('mode-transit-bike', 'n_clicks'),
      Input('mode-car', 'n_clicks'),
      Input('mode-bike', 'n_clicks'),
      Input('mode-shared-ride', 'n_clicks'),
@@ -136,7 +131,8 @@ app.layout = html.Div(style={'backgroundColor': '#ffffff', 'boxSizing': 'border-
      Input('optimization-criteria', 'value')],
     [State('input-origin', 'value'),
      State('input-destination', 'value'),
-     State('mode-transit', 'n_clicks'),
+     State('mode-transit-walk', 'n_clicks'),
+     State('mode-transit-bike', 'n_clicks'),
      State('mode-car', 'n_clicks'),
      State('mode-bike', 'n_clicks'),
      State('mode-shared-ride', 'n_clicks'),
@@ -147,58 +143,59 @@ app.layout = html.Div(style={'backgroundColor': '#ffffff', 'boxSizing': 'border-
      State('departure-minute', 'value'),
      State('map-graph', 'figure')]
 )
-def update_inputs_and_calculate_travel_time(clickData, n_clicks, start_over_clicks, transit_clicks, car_clicks, bike_clicks, shared_ride_clicks, walk_clicks, optimization_criteria, origin, destination, transit_clicks_state, car_clicks_state, bike_clicks_state, shared_ride_clicks_state, walk_clicks_state, departure_time_radio, departure_date, departure_hour, departure_minute, current_figure):
+def update_inputs_and_calculate_travel_time(clickData, n_clicks, start_over_clicks, transit_walk_clicks, transit_bike_clicks, car_clicks, bike_clicks, shared_ride_clicks, walk_clicks, optimization_criteria, origin, destination, transit_walk_clicks_state, transit_bike_clicks_state, car_clicks_state, bike_clicks_state, shared_ride_clicks_state, walk_clicks_state, departure_time_radio, departure_date, departure_hour, departure_minute, current_figure):
     ctx = callback_context
     if not ctx.triggered:
-        return origin, destination, current_figure, html.Div("Enter valid coordinates and click 'Calculate Travel Time'.", style={'padding': '10px', 'background-color': '#74bf0c', 'color': 'black', 'margin-bottom': '10px'}), {'margin': '5px', 'background-color': '#93979C', 'color': 'white'}, {'margin': '5px', 'background-color': '#93979C', 'color': 'white'}, {'margin': '5px', 'background-color': '#93979C', 'color': 'white'}, {'margin': '5px', 'background-color': '#93979C', 'color': 'white'}, {'margin': '5px', 'background-color': '#93979C', 'color': 'white'}
-        
-    # Identify the triggered input
+        return origin, destination, current_figure, html.Div("Enter valid coordinates and click 'Calculate Travel Time'.", style={'padding': '10px', 'background-color': '#74bf0c', 'color': 'black', 'margin-bottom': '10px'}), {'margin': '5px', 'background-color': '#93979C', 'color': 'white'}, {'margin': '5px', 'background-color': '#93979C', 'color': 'white'}, {'margin': '5px', 'background-color': '#93979C', 'color': 'white'}, {'margin': '5px', 'background-color': '#93979C', 'color': 'white'}, {'margin': '5px', 'background-color': '#93979C', 'color': 'white'}, {'margin': '5px', 'background-color': '#93979C', 'color': 'white'}
+
     trigger = ctx.triggered[0]['prop_id'].split('.')[0]
 
     # Determine the selected mode based on button clicks
     mode_styles = {
-        'mode-transit': {'margin': '5px', 'background-color': '#93979C', 'color': 'white'},
+        'mode-transit-walk': {'margin': '5px', 'background-color': '#93979C', 'color': 'white'},
+        'mode-transit-bike': {'margin': '5px', 'background-color': '#93979C', 'color': 'white'},
         'mode-car': {'margin': '5px', 'background-color': '#93979C', 'color': 'white'},
         'mode-bike': {'margin': '5px', 'background-color': '#93979C', 'color': 'white'},
         'mode-shared-ride': {'margin': '5px', 'background-color': '#93979C', 'color': 'white'},
         'mode-walk': {'margin': '5px', 'background-color': '#93979C', 'color': 'white'}
     }
 
-    mode_of_travel = 'TRANSIT'  # Default to transit if none selected
+    mode_of_travel = 'TRANSIT_WALK'  # Default to transit walk if none selected
     if trigger == 'mode-car':
         mode_of_travel = 'CAR'
     elif trigger == 'mode-bike':
         mode_of_travel = 'BICYCLE'
-    elif trigger == 'mode-transit':
-        mode_of_travel = 'TRANSIT'
+    elif trigger == 'mode-transit-walk':
+        mode_of_travel = 'TRANSIT_WALK'
+    elif trigger == 'mode-transit-bike':
+        mode_of_travel = 'TRANSIT_BIKE'
     elif trigger == 'mode-shared-ride':
         mode_of_travel = 'SHARED_RIDE'
     elif trigger == 'mode-walk':
         mode_of_travel = 'WALK'
     elif trigger == 'calculate-button':
         # Use the last selected mode when Calculate Travel Time button is clicked
-        if car_clicks_state >= bike_clicks_state and car_clicks_state >= transit_clicks_state and car_clicks_state >= shared_ride_clicks_state and car_clicks_state >= walk_clicks_state:
+        if car_clicks_state >= bike_clicks_state and car_clicks_state >= transit_walk_clicks_state and car_clicks_state >= transit_bike_clicks_state and car_clicks_state >= shared_ride_clicks_state and car_clicks_state >= walk_clicks_state:
             mode_of_travel = 'CAR'
-        elif bike_clicks_state >= car_clicks_state and bike_clicks_state >= transit_clicks_state and bike_clicks_state >= shared_ride_clicks_state and bike_clicks_state >= walk_clicks_state:
+        elif bike_clicks_state >= car_clicks_state and bike_clicks_state >= transit_walk_clicks_state and bike_clicks_state >= transit_bike_clicks_state and bike_clicks_state >= shared_ride_clicks_state and bike_clicks_state >= walk_clicks_state:
             mode_of_travel = 'BICYCLE'
-        elif transit_clicks_state >= car_clicks_state and transit_clicks_state >= bike_clicks_state and transit_clicks_state >= shared_ride_clicks_state and transit_clicks_state >= walk_clicks_state:
-            mode_of_travel = 'TRANSIT'
-        elif shared_ride_clicks_state >= car_clicks_state and shared_ride_clicks_state >= bike_clicks_state and shared_ride_clicks_state >= transit_clicks_state and shared_ride_clicks_state >= walk_clicks_state:
+        elif transit_walk_clicks_state >= car_clicks_state and transit_walk_clicks_state >= bike_clicks_state and transit_walk_clicks_state >= transit_bike_clicks_state and transit_walk_clicks_state >= shared_ride_clicks_state and transit_walk_clicks_state >= walk_clicks_state:
+            mode_of_travel = 'TRANSIT_WALK'
+        elif transit_bike_clicks_state >= car_clicks_state and transit_bike_clicks_state >= bike_clicks_state and transit_bike_clicks_state >= transit_walk_clicks_state and transit_bike_clicks_state >= shared_ride_clicks_state and transit_bike_clicks_state >= walk_clicks_state:
+            mode_of_travel = 'TRANSIT_BIKE'
+        elif shared_ride_clicks_state >= car_clicks_state and shared_ride_clicks_state >= bike_clicks_state and shared_ride_clicks_state >= transit_walk_clicks_state and shared_ride_clicks_state >= transit_bike_clicks_state and shared_ride_clicks_state >= walk_clicks_state:
             mode_of_travel = 'SHARED_RIDE'
-        elif walk_clicks_state >= car_clicks_state and walk_clicks_state >= bike_clicks_state and walk_clicks_state >= transit_clicks_state and walk_clicks_state >= shared_ride_clicks_state:
+        elif walk_clicks_state >= car_clicks_state and walk_clicks_state >= bike_clicks_state and walk_clicks_state >= transit_walk_clicks_state and walk_clicks_state >= transit_bike_clicks_state and walk_clicks_state >= shared_ride_clicks_state:
             mode_of_travel = 'WALK'
     elif trigger == 'start-over-button':
-        # Reset inputs and map figure when Start Over button is clicked
-        return '', '', fig, '', mode_styles['mode-transit'], mode_styles['mode-car'], mode_styles['mode-bike'], mode_styles['mode-shared-ride'], mode_styles['mode-walk']
+        return '', '', fig, '', mode_styles['mode-transit-walk'], mode_styles['mode-transit-bike'], mode_styles['mode-car'], mode_styles['mode-bike'], mode_styles['mode-shared-ride'], mode_styles['mode-walk']
 
-    if trigger == 'map-graph':
-         # Handle map click events to update origin and destination
+    if trigger == 'map-graph' and clickData:
         coords = clickData['points'][0]
         lat, lon = coords['lat'], coords['lon']
         coords_str = f"{lat}, {lon}"
 
         if not origin:
-            # Set the clicked point as the origin if origin is empty
             new_figure = go.Figure(data=current_figure['data'], layout=current_figure['layout'])
             new_figure.add_trace(go.Scattermapbox(
                 mode='markers+text',
@@ -209,9 +206,8 @@ def update_inputs_and_calculate_travel_time(clickData, n_clicks, start_over_clic
                 textposition="bottom right",
                 showlegend=False
             ))
-            return coords_str, destination, new_figure, no_update, mode_styles['mode-transit'], mode_styles['mode-car'], mode_styles['mode-bike'], mode_styles['mode-shared-ride'], mode_styles['mode-walk']
+            return coords_str, destination, new_figure, no_update, mode_styles['mode-transit-walk'], mode_styles['mode-transit-bike'], mode_styles['mode-car'], mode_styles['mode-bike'], mode_styles['mode-shared-ride'], mode_styles['mode-walk']
         elif not destination:
-            # Set the clicked point as the destination if origin is set but destination is empty
             new_figure = go.Figure(data=current_figure['data'], layout=current_figure['layout'])
             new_figure.add_trace(go.Scattermapbox(
                 mode='markers+text',
@@ -222,9 +218,8 @@ def update_inputs_and_calculate_travel_time(clickData, n_clicks, start_over_clic
                 textposition="bottom right",
                 showlegend=False
             ))
-            return origin, coords_str, new_figure, no_update, mode_styles['mode-transit'], mode_styles['mode-car'], mode_styles['mode-bike'], mode_styles['mode-shared-ride'], mode_styles['mode-walk']
+            return origin, coords_str, new_figure, no_update, mode_styles['mode-transit-walk'], mode_styles['mode-transit-bike'], mode_styles['mode-car'], mode_styles['mode-bike'], mode_styles['mode-shared-ride'], mode_styles['mode-walk']
         else:
-            # Update the map with a new origin point if both origin and destination are set
             new_figure = go.Figure(data=current_figure['data'], layout=current_figure['layout'])
             new_figure.add_trace(go.Scattermapbox(
                 mode='markers+text',
@@ -235,10 +230,9 @@ def update_inputs_and_calculate_travel_time(clickData, n_clicks, start_over_clic
                 textposition="bottom right",
                 showlegend=False
             ))
-            return coords_str, None, new_figure, no_update, mode_styles['mode-transit'], mode_styles['mode-car'], mode_styles['mode-bike'], mode_styles['mode-shared-ride'], mode_styles['mode-walk']
+            return coords_str, None, new_figure, no_update, mode_styles['mode-transit-walk'], mode_styles['mode-transit-bike'], mode_styles['mode-car'], mode_styles['mode-bike'], mode_styles['mode-shared-ride'], mode_styles['mode-walk']
 
-    if trigger in ['calculate-button', 'mode-transit', 'mode-car', 'mode-bike', 'mode-shared-ride', 'mode-walk', 'optimization-criteria'] and n_clicks > 0 and origin and destination:
-        # Perform travel time calculation when Calculate Travel Time or any mode button is clicked
+    if trigger in ['calculate-button', 'mode-transit-walk', 'mode-transit-bike', 'mode-car', 'mode-bike', 'mode-shared-ride', 'mode-walk', 'optimization-criteria'] and n_clicks > 0 and origin and destination:
         try:
             origin_lat, origin_lon = map(float, origin.split(','))
             destination_lat, destination_lon = map(float, destination.split(','))
@@ -247,13 +241,11 @@ def update_inputs_and_calculate_travel_time(clickData, n_clicks, start_over_clic
             origins = gpd.GeoDataFrame([{'id': 'origin', 'geometry': origin_point}], crs="EPSG:4326")
             destinations = gpd.GeoDataFrame([{'id': 'destination', 'geometry': destination_point}], crs="EPSG:4326")
 
-            # Determine the departure datetime
             if departure_time_radio == 'future' and departure_date and departure_hour and departure_minute:
                 departure_datetime = datetime.combine(datetime.fromisoformat(departure_date).date(), datetime.strptime(f'{departure_hour}:{departure_minute}', '%H:%M').time())
             else:
                 departure_datetime = datetime.now()
 
-            # Calculate shared ride travel time with additional wait and travel time
             if mode_of_travel == 'SHARED_RIDE':
                 # Compute car travel time
                 car_itineraries_computer = r5py.DetailedItinerariesComputer(
@@ -332,16 +324,36 @@ def update_inputs_and_calculate_travel_time(clickData, n_clicks, start_over_clic
                     showlegend=False
                 ))
 
-                return origin, destination, current_figure, output, mode_styles['mode-transit'], mode_styles['mode-car'], mode_styles['mode-bike'], mode_styles['mode-shared-ride'], mode_styles['mode-walk']
+                return origin, destination, current_figure, output, mode_styles['mode-transit-walk'], mode_styles['mode-transit-bike'], mode_styles['mode-car'], mode_styles['mode-bike'], mode_styles['mode-shared-ride'], mode_styles['mode-walk']
+
+            # Prepare the transport modes for itinerary computation
+            if mode_of_travel == 'TRANSIT_WALK':
+                transport_modes = [r5py.TransportMode.TRANSIT]
+                access_modes = [r5py.TransportMode.WALK]
+                egress_modes = [r5py.TransportMode.WALK]
+            elif mode_of_travel == 'TRANSIT_BIKE':
+                transport_modes = [r5py.TransportMode.TRANSIT, r5py.TransportMode.BICYCLE]
+                access_modes = [r5py.TransportMode.BICYCLE]
+                egress_modes = [r5py.TransportMode.BICYCLE]
+            else:
+                transport_modes = [r5py.TransportMode[mode_of_travel]]
+                access_modes = []
+                egress_modes = []
 
             detailed_itineraries_computer = r5py.DetailedItinerariesComputer(
                 transport_network,
                 origins=origins,
                 destinations=destinations,
                 departure=departure_datetime,
-                transport_modes=[mode_of_travel]
+                transport_modes=transport_modes,
+                access_modes=access_modes,
+                egress_modes=egress_modes
             )
             travel_details = detailed_itineraries_computer.compute_travel_details()
+
+            # Filter travel details to ensure it includes both transit and bike segments
+            if mode_of_travel == 'TRANSIT_BIKE':
+                travel_details = travel_details[1:]
 
             # Convert current_figure to go.Figure if it's a dict
             if isinstance(current_figure, dict):
@@ -356,12 +368,12 @@ def update_inputs_and_calculate_travel_time(clickData, n_clicks, start_over_clic
             def meters_to_miles(meters):
                 return meters * 0.000621371
 
-            if mode_of_travel == 'TRANSIT':
+            if mode_of_travel in ['TRANSIT_WALK', 'TRANSIT_BIKE']:
                 # Group by option and calculate the total travel time
                 travel_details['total_time'] = travel_details['travel_time'] + travel_details['wait_time']
 
-                # Calculate walking time as the sum of the first and last segment travel times
-                walking_time = travel_details.groupby('option', group_keys=False).apply(lambda x: x.iloc[0]['travel_time'] + x.iloc[-1]['travel_time']).reset_index(name='walking_time')
+                # Calculate walking/biking time as the sum of the first and last segment travel times
+                walking_biking_time = travel_details.groupby('option', group_keys=False).apply(lambda x: x.iloc[0]['travel_time'] + x.iloc[-1]['travel_time']).reset_index(name='walking_biking_time')
 
                 # Calculate the number of transfers
                 travel_details['num_transfers'] = travel_details.groupby('option')['segment'].transform('count') - 3
@@ -371,7 +383,7 @@ def update_inputs_and_calculate_travel_time(clickData, n_clicks, start_over_clic
                     wait_time=('wait_time', 'sum'),
                     num_transfers=('num_transfers', 'first'),
                     distance=('distance', 'sum')
-                ).reset_index().merge(walking_time, on='option')
+                ).reset_index().merge(walking_biking_time, on='option')
 
                 # Select the best option based on the selected optimization criteria
                 if optimization_criteria == 'total_time':
@@ -380,13 +392,14 @@ def update_inputs_and_calculate_travel_time(clickData, n_clicks, start_over_clic
                     min_travel_time_option = grouped_travel_details.loc[grouped_travel_details['num_transfers'].idxmin()]
                 elif optimization_criteria == 'wait_time':
                     min_travel_time_option = grouped_travel_details.loc[grouped_travel_details['wait_time'].idxmin()]
-                elif optimization_criteria == 'walking_time':
-                    min_travel_time_option = grouped_travel_details.loc[grouped_travel_details['walking_time'].idxmin()]
+                elif optimization_criteria == 'walking_biking_distance':
+                    min_travel_time_option = grouped_travel_details.loc[grouped_travel_details['distance'].idxmin()]
                 else:
                     min_travel_time_option = grouped_travel_details.loc[grouped_travel_details['total_time'].idxmin()]
 
                 selected_option_details = travel_details[travel_details['option'] == min_travel_time_option['option']]
 
+               
                 # Calculate total travel time for the selected option
                 total_travel_time_seconds = selected_option_details['total_time'].sum().total_seconds()
                 total_wait_time_seconds = selected_option_details['wait_time'].sum().total_seconds()
@@ -397,10 +410,10 @@ def update_inputs_and_calculate_travel_time(clickData, n_clicks, start_over_clic
 
                 first_row = selected_option_details.iloc[0]
                 last_row = selected_option_details.iloc[-1]
-                total_walking_distance_meters = first_row['distance'] + last_row['distance']
-                total_walking_distance_miles = meters_to_miles(total_walking_distance_meters)
-                total_walking_time = first_row['travel_time'] + last_row['travel_time']
-                total_out_of_vehicle_time = total_walking_time + selected_option_details['wait_time'].sum()
+                total_walking_biking_distance_meters = first_row['distance'] + last_row['distance']
+                total_walking_biking_distance_miles = meters_to_miles(total_walking_biking_distance_meters)
+                total_walking_biking_time = first_row['travel_time'] + last_row['travel_time']
+                total_out_of_vehicle_time = total_walking_biking_time + selected_option_details['wait_time'].sum()
 
                 # Extract and plot the route geometry
                 first_segment = selected_option_details.iloc[0]
@@ -423,7 +436,7 @@ def update_inputs_and_calculate_travel_time(clickData, n_clicks, start_over_clic
                     lon=first_segment_lons,
                     lat=first_segment_lats,
                     line=dict(width=2, color='lightblue'),
-                    name='First Walk Segment'
+                    name='First Segment'
                 )
 
                 transit_trace = go.Scattermapbox(
@@ -439,7 +452,7 @@ def update_inputs_and_calculate_travel_time(clickData, n_clicks, start_over_clic
                     lon=last_segment_lons,
                     lat=last_segment_lats,
                     line=dict(width=2, color='lightblue'),
-                    name='Last Walk Segment'
+                    name='Last Segment'
                 )
 
                 current_figure.add_trace(first_segment_trace)
@@ -463,9 +476,9 @@ def update_inputs_and_calculate_travel_time(clickData, n_clicks, start_over_clic
 
                 output = [
                     html.Div(f"Calculated Travel Time: {hours} hours, {minutes} minutes, and {seconds} seconds", style={'padding': '10px', 'background-color': '#74bf0c', 'color': 'black', 'margin-bottom': '10px'}),
-                    html.Div(f"Total Walking Distance: {total_walking_distance_miles:.2f} miles", style={'padding': '10px', 'background-color': '#74bf0c', 'color': 'black', 'margin-bottom': '10px'}),
+                    html.Div(f"Total {mode_of_travel.split('_')[1].title()} Distance: {total_walking_biking_distance_miles:.2f} miles", style={'padding': '10px', 'background-color': '#74bf0c', 'color': 'black', 'margin-bottom': '10px'}),
                     html.Div(f"Total Out of Vehicle Time: {total_out_of_vehicle_time}", style={'padding': '10px', 'background-color': '#74bf0c', 'color': 'black', 'margin-bottom': '10px'}),
-                    html.Div(f"Total Walking Time: {total_walking_time}", style={'padding': '10px', 'background-color': '#74bf0c', 'color': 'black', 'margin-bottom': '10px'})
+                    html.Div(f"Total {mode_of_travel.split('_')[1].title()} Time: {total_walking_biking_time}", style={'padding': '10px', 'background-color': '#74bf0c', 'color': 'black', 'margin-bottom': '10px'})
                 ]
 
             else:
@@ -513,7 +526,8 @@ def update_inputs_and_calculate_travel_time(clickData, n_clicks, start_over_clic
 
             # Mapping of mode_of_travel to mode_styles keys
             mode_mapping = {
-                'TRANSIT': 'mode-transit',
+                'TRANSIT_WALK': 'mode-transit-walk',
+                'TRANSIT_BIKE': 'mode-transit-bike',
                 'CAR': 'mode-car',
                 'BICYCLE': 'mode-bike',
                 'SHARED_RIDE': 'mode-shared-ride',
@@ -526,17 +540,14 @@ def update_inputs_and_calculate_travel_time(clickData, n_clicks, start_over_clic
                 mode_styles[selected_mode_key]['background-color'] = '#74bf0c'
                 mode_styles[selected_mode_key]['color'] = 'black'
 
-            # Return the updated states and figure
-            return origin, destination, current_figure, output, mode_styles['mode-transit'], mode_styles['mode-car'], mode_styles['mode-bike'], mode_styles['mode-shared-ride'], mode_styles['mode-walk']
+            return origin, destination, current_figure, output, mode_styles['mode-transit-walk'], mode_styles['mode-transit-bike'], mode_styles['mode-car'], mode_styles['mode-bike'], mode_styles['mode-shared-ride'], mode_styles['mode-walk']
 
         except Exception as e:
             import traceback
             print(traceback.format_exc())
-            # Return the current states and an error message if an exception occurs
-            return origin, destination, current_figure, html.Div(f"Error calculating travel time: {str(e)}", style={'padding': '10px', 'background-color': '#74bf0c', 'color': 'black', 'margin-bottom': '10px'}), mode_styles['mode-transit'], mode_styles['mode-car'], mode_styles['mode-bike'], mode_styles['mode-shared-ride'], mode_styles['mode-walk']
+            return origin, destination, current_figure, html.Div(f"Error calculating travel time: {str(e)}", style={'padding': '10px', 'background-color': '#74bf0c', 'color': 'black', 'margin-bottom': '10px'}), mode_styles['mode-transit-walk'], mode_styles['mode-transit-bike'], mode_styles['mode-car'], mode_styles['mode-bike'], mode_styles['mode-shared-ride'], mode_styles['mode-walk']
 
-    # Default return when no valid coordinates are provided
-    return origin, destination, current_figure, html.Div("Enter valid coordinates and click 'Calculate Travel Time'.", style={'padding': '10px', 'background-color': '#74bf0c', 'color': 'black', 'margin-bottom': '10px'}), mode_styles['mode-transit'], mode_styles['mode-car'], mode_styles['mode-bike'], mode_styles['mode-shared-ride'], mode_styles['mode-walk']
+    return origin, destination, current_figure, html.Div("Enter valid coordinates and click 'Calculate Travel Time'.", style={'padding': '10px', 'background-color': '#74bf0c', 'color': 'black', 'margin-bottom': '10px'}), mode_styles['mode-transit-walk'], mode_styles['mode-transit-bike'], mode_styles['mode-car'], mode_styles['mode-bike'], mode_styles['mode-shared-ride'], mode_styles['mode-walk']
 
 @app.callback(
     Output('departure-time-div', 'style'),
