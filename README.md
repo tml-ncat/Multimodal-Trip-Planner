@@ -79,8 +79,14 @@ A Plotly interface to show route and travel itinerary details for different tran
 
 
 ## Ongoing Work
-1. Work with multiple user criteria (costs, road slope, bike level of traffic stress, etc.)
-2. Incorporate combination of multiple travel modes (such as shared ride + fixed transit).
+1. Work with multiple user criteria ( bike level of traffic stress, etc.)
+2.  
+
+## Note
+
+For slope data, you need to download the elevation data (geotiff) for the location of interest. The file sizes are big and can't be uploaded on github.
+[USGS website to download elevation data](https://www.usgs.gov/tools/national-map-viewer)
+
 
 ## Contributing
 
