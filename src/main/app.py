@@ -627,12 +627,20 @@ def update_inputs_and_calculate_travel_time(clickData, n_clicks, start_over_clic
                         minutes = int((total_time_seconds % 3600) // 60)
                         seconds = int(total_time_seconds % 60)
 
+                        output = [
+                            # html.Div(f"Calculated Travel Time: {hours} hours, {minutes} minutes, and {seconds} seconds", style={'padding': '10px', 'background-color': '#f4f4f9', 'color': 'black', 'margin-bottom': '10px'}),
+                            html.Div(f"Total Walking/Biking Distance: {total_walking_biking_distance_miles:.2f} miles", style={'padding': '10px', 'background-color': '#f4f4f9', 'color': 'black', 'margin-bottom': '10px'}),
+                            html.Div(f"Total Out of Vehicle Time: {total_out_of_vehicle_time}", style={'padding': '10px', 'background-color': '#f4f4f9', 'color': 'black', 'margin-bottom': '10px'}),
+                            html.Div(f"Total Walking/Biking Time: {total_walking_biking_time}", style={'padding': '10px', 'background-color': '#f4f4f9', 'color': 'black', 'margin-bottom': '10px'})
+                        ]
+                        
                         all_segments_details.append(
                             html.Div([
                                 html.Div(f"Segment {i + 1} Travel Time: {hours} hours, {minutes} minutes, and {seconds} seconds", style={'padding': '10px', 'background-color': '#74bf0c', 'color': 'black', 'margin-bottom': '10px'}),
                                 html.Div(f"Transit Fare: ${transit_fare:.2f}", style={'padding': '10px', 'background-color': '#f4f4f9', 'color': 'black', 'margin-bottom': '10px'})
                             ])
                         )
+                        all_segments_details.extend(output)
 
                     else:
                         min_travel_time = travel_details['travel_time'].min()
