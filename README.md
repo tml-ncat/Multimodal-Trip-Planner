@@ -72,10 +72,10 @@ A Plotly interface to show route and travel itinerary details for different tran
 - Responsive design for different devices.
 
 ## Example
-![Example Image](images/mixed.png)
-![Example Image](images/slope.png)
-![Example Image](images/tra_time_optim.png)
-![Example Image](images/share.png)
+![Example Image](images/3-transit.png)
+![Example Image](images/2-bike.png)
+#![Example Image](images/tra_time_optim.png)
+![Example Image](images/1-shared.png)
 
 
 ## Ongoing Work
