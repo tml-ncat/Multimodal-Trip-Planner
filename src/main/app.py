@@ -103,7 +103,7 @@ app.layout = html.Div(style={'backgroundColor': '#ffffff', 'boxSizing': 'border-
             dcc.Input(id='input-origin', type='text', placeholder='Enter origin lat, lon', style={'width': '100%', 'margin': '5px'}),
             html.Label('Enter your destination (lat, lon):', style={'margin': '5px', 'color': '#555555'}),
             dcc.Input(id='input-destination', type='text', placeholder='Enter destination lat, lon', style={'width': '100%', 'margin': '5px'}),
-            html.Button('Add Destination', id='add-destination-button', n_clicks=0, style={'margin': '5px', 'background-color': '#93979C', 'color': 'white', 'display': 'none'}),
+            html.Button('Add Destination', id='add-destination-button', n_clicks=0, style={'margin': '5px', 'background-color': '#1c293a', 'color': 'white', 'display': 'none'}),
             html.Div(id='new-destinations-container'),
             html.Label('Select Trip Mode:', style={'margin': '5px', 'color': '#555555'}),
             dcc.RadioItems(
@@ -147,15 +147,15 @@ app.layout = html.Div(style={'backgroundColor': '#ffffff', 'boxSizing': 'border-
         html.Div([
             html.Label('Select your transport mode:', style={'margin': '5px', 'color': '#555555'}),
             html.Div([
-                html.Button('Transit + Walk 🚶🏻🚌', id='mode-transit-walk', n_clicks=0, style={'margin': '5px', 'background-color': '#93979C', 'color': 'white'}),
-                html.Button('Transit + Bike 🚲🚌', id='mode-transit-bike', n_clicks=0, style={'margin': '5px', 'background-color': '#93979C', 'color': 'white'}),
-                html.Button('Car 🚗', id='mode-car', n_clicks=0, style={'margin': '5px', 'background-color': '#93979C', 'color': 'white'}),
-                html.Button('Bike 🚲', id='mode-bike', n_clicks=0, style={'margin': '5px', 'background-color': '#93979C', 'color': 'white'}),
-                html.Button('Shared Ride 🚕', id='mode-shared-ride', n_clicks=0, style={'margin': '5px', 'background-color': '#93979C', 'color': 'white'}),
-                html.Button('Walk 🚶🏻', id='mode-walk', n_clicks=0, style={'margin': '5px', 'background-color': '#93979C', 'color': 'white'}),
+                html.Button('Transit + Walk 🚶🏻🚌', id='mode-transit-walk', n_clicks=0, style={'margin': '5px', 'background-color': '#1c293a', 'color': 'white'}),
+                html.Button('Transit + Bike 🚲🚌', id='mode-transit-bike', n_clicks=0, style={'margin': '5px', 'background-color': '#1c293a', 'color': 'white'}),
+                html.Button('Car 🚗', id='mode-car', n_clicks=0, style={'margin': '5px', 'background-color': '#1c293a', 'color': 'white'}),
+                html.Button('Bike 🚲', id='mode-bike', n_clicks=0, style={'margin': '5px', 'background-color': '#1c293a', 'color': 'white'}),
+                html.Button('Shared Ride 🚕', id='mode-shared-ride', n_clicks=0, style={'margin': '5px', 'background-color': '#1c293a', 'color': 'white'}),
+                html.Button('Walk 🚶🏻', id='mode-walk', n_clicks=0, style={'margin': '5px', 'background-color': '#1c293a', 'color': 'white'}),
             ], style={'display': 'flex', 'flex-wrap': 'wrap'}),
-            html.Div(id='travel-time', style={'padding': '10px', 'background-color': '#f4f4f9', 'color': '#333333', 'text-align': 'center'}),
-            html.Div(id='selected-modes-summary', style={'padding': '10px', 'background-color': '#f4f4f9', 'color': '#333333', 'text-align': 'center'})
+            html.Div(id='travel-time', style={'padding': '10px', 'background-color': '#f4f4f9', 'color': '#333333', 'text-align': 'left'}),
+            html.Div(id='selected-modes-summary', style={'padding': '10px', 'background-color': '#f4f4f9', 'color': '#333333', 'text-align': 'left'})
         ], style={'width': '50%', 'display': 'inline-block', 'padding': '20px', 'background-color': '#eaeaea', 'boxSizing': 'border-box'}),
     ], id='main-content', style={'display': 'flex', 'flex-wrap': 'wrap', 'height': 'auto', 'boxSizing': 'border-box'}),
     html.Div([
@@ -170,7 +170,7 @@ app.layout = html.Div(style={'backgroundColor': '#ffffff', 'boxSizing': 'border-
 )
 def toggle_add_destination_button(origin, destination):
     if origin and destination:
-        return [{'margin': '5px', 'background-color': '#93979C', 'color': 'white'}]
+        return [{'margin': '5px', 'background-color': '#1c293a', 'color': 'white'}]
     return [{'display': 'none'}]
 
 @app.callback(
@@ -259,19 +259,25 @@ def update_segment_mode_dropdowns(trip_mode, n_clicks, origin, destination, dyna
      State('departure-date-picker', 'date'),
      State('departure-hour', 'value'),
      State('departure-minute', 'value'),
-     State('map-graph', 'figure')]
+     State('map-graph', 'figure'),
+     State('mode-transit-walk', 'style'),
+     State('mode-transit-bike', 'style'),
+     State('mode-car', 'style'),
+     State('mode-bike', 'style'),
+     State('mode-shared-ride', 'style'),
+     State('mode-walk', 'style')]
 )
-def update_inputs_and_calculate_travel_time(clickData, n_clicks, start_over_clicks, transit_walk_clicks, transit_bike_clicks, car_clicks, bike_clicks, shared_ride_clicks, walk_clicks, optimization_criteria, origin, destination, dynamic_destinations, segment_modes, trip_mode, departure_time_radio, departure_date, departure_hour, departure_minute, current_figure):
+def update_inputs_and_calculate_travel_time(clickData, n_clicks, start_over_clicks, transit_walk_clicks, transit_bike_clicks, car_clicks, bike_clicks, shared_ride_clicks, walk_clicks, optimization_criteria, origin, destination, dynamic_destinations, segment_modes, trip_mode, departure_time_radio, departure_date, departure_hour, departure_minute, current_figure, transit_walk_style, transit_bike_style, car_style, bike_style, shared_ride_style, walk_style):
     ctx = callback_context
     trigger = ctx.triggered[0]['prop_id'].split('.')[0]
 
     mode_styles = {
-        'mode-transit-walk': {'margin': '5px', 'background-color': '#93979C', 'color': 'white'},
-        'mode-transit-bike': {'margin': '5px', 'background-color': '#93979C', 'color': 'white'},
-        'mode-car': {'margin': '5px', 'background-color': '#93979C', 'color': 'white'},
-        'mode-bike': {'margin': '5px', 'background-color': '#93979C', 'color': 'white'},
-        'mode-shared-ride': {'margin': '5px', 'background-color': '#93979C', 'color': 'white'},
-        'mode-walk': {'margin': '5px', 'background-color': '#93979C', 'color': 'white'}
+        'mode-transit-walk': {'margin': '5px', 'background-color': '#1c293a', 'color': 'white'},
+        'mode-transit-bike': {'margin': '5px', 'background-color': '#1c293a', 'color': 'white'},
+        'mode-car': {'margin': '5px', 'background-color': '#1c293a', 'color': 'white'},
+        'mode-bike': {'margin': '5px', 'background-color': '#1c293a', 'color': 'white'},
+        'mode-shared-ride': {'margin': '5px', 'background-color': '#1c293a', 'color': 'white'},
+        'mode-walk': {'margin': '5px', 'background-color': '#1c293a', 'color': 'white'}
     }
 
     def parse_coordinates(coords_str):
@@ -349,30 +355,30 @@ def update_inputs_and_calculate_travel_time(clickData, n_clicks, start_over_clic
 
     mode_of_travel = 'TRANSIT_WALK'  # Default to transit walk if none selected
     if trip_mode == 'same':
-        if trigger == 'mode-car':
-            mode_of_travel = 'CAR'
-            mode_styles['mode-car']['background-color'] = '#74bf0c'
-            mode_styles['mode-car']['color'] = 'black'
-        elif trigger == 'mode-bike':
-            mode_of_travel = 'BICYCLE'
-            mode_styles['mode-bike']['background-color'] = '#74bf0c'
-            mode_styles['mode-bike']['color'] = 'black'
-        elif trigger == 'mode-transit-walk':
-            mode_of_travel = 'TRANSIT_WALK'
-            mode_styles['mode-transit-walk']['background-color'] = '#74bf0c'
-            mode_styles['mode-transit-walk']['color'] = 'black'
-        elif trigger == 'mode-transit-bike':
+        if trigger == 'mode-transit-bike' or (trigger == 'optimization-criteria' and transit_bike_style['background-color'] == '#74bf0c'):
             mode_of_travel = 'TRANSIT_BIKE'
-            mode_styles['mode-transit-bike']['background-color'] = '#74bf0c'
-            mode_styles['mode-transit-bike']['color'] = 'black'
-        elif trigger == 'mode-shared-ride':
+            transit_bike_style['background-color'] = '#74bf0c'
+            transit_bike_style['color'] = 'black'
+        elif trigger == 'mode-car' or (trigger == 'optimization-criteria' and car_style['background-color'] == '#74bf0c'):
+            mode_of_travel = 'CAR'
+            car_style['background-color'] = '#74bf0c'
+            car_style['color'] = 'black'
+        elif trigger == 'mode-bike' or (trigger == 'optimization-criteria' and bike_style['background-color'] == '#74bf0c'):
+            mode_of_travel = 'BICYCLE'
+            bike_style['background-color'] = '#74bf0c'
+            bike_style['color'] = 'black'
+        elif trigger == 'mode-transit-walk' or (trigger == 'optimization-criteria' and transit_walk_style['background-color'] == '#74bf0c'):
+            mode_of_travel = 'TRANSIT_WALK'
+            transit_walk_style['background-color'] = '#74bf0c'
+            transit_walk_style['color'] = 'black'
+        elif trigger == 'mode-shared-ride' or (trigger == 'optimization-criteria' and shared_ride_style['background-color'] == '#74bf0c'):
             mode_of_travel = 'SHARED_RIDE'
-            mode_styles['mode-shared-ride']['background-color'] = '#74bf0c'
-            mode_styles['mode-shared-ride']['color'] = 'black'
-        elif trigger == 'mode-walk':
+            shared_ride_style['background-color'] = '#74bf0c'
+            shared_ride_style['color'] = 'black'
+        elif trigger == 'mode-walk' or (trigger == 'optimization-criteria' and walk_style['background-color'] == '#74bf0c'):
             mode_of_travel = 'WALK'
-            mode_styles['mode-walk']['background-color'] = '#74bf0c'
-            mode_styles['mode-walk']['color'] = 'black'
+            walk_style['background-color'] = '#74bf0c'
+            walk_style['color'] = 'black'
         elif trigger == 'calculate-button':
             # Use the last selected mode when Calculate Travel Time button is clicked
             if car_clicks >= bike_clicks and car_clicks >= transit_walk_clicks and car_clicks >= transit_bike_clicks and car_clicks >= shared_ride_clicks and car_clicks >= walk_clicks:
@@ -469,11 +475,13 @@ def update_inputs_and_calculate_travel_time(clickData, n_clicks, start_over_clic
 
                     all_segments_details.append(
                         html.Div([
-                            html.Div(f"Segment {i + 1} Travel Time: {hours} hours, {minutes} minutes, and {seconds} seconds", style={'padding': '10px', 'background-color': '#74bf0c', 'color': 'black', 'margin-bottom': '10px'}),
-                            html.Div(f"Wait Time: {wait_time:.2f} minutes", style={'padding': '10px', 'background-color': '#f4f4f9', 'color': 'black', 'margin-bottom': '10px'}),
-                            html.Div(f"Additional Travel Time: {additional_travel_time:.2f} minutes", style={'padding': '10px', 'background-color': '#f4f4f9', 'color': 'black', 'margin-bottom': '10px'}),
-                            html.Div(f"Base Travel Time: {min_car_travel_time}", style={'padding': '10px', 'background-color': '#f4f4f9', 'color': 'black', 'margin-bottom': '10px'}),
-                            html.Div(f"Shared Ride Fare: ${shared_ride_fare:.2f}", style={'padding': '10px', 'background-color': '#f4f4f9', 'color': 'black', 'margin-bottom': '10px'})
+                            html.Li(f"Segment {i + 1} Travel Time: {hours} hours, {minutes} minutes, and {seconds} seconds", style={'padding': '3px', 'background-color': '#f4f4f9', 'color': 'black', 'margin-bottom': '3px'}),
+                            html.Ul([
+                                html.Li(f"Base Travel Time: {min_car_travel_time}", style={'padding': '3px', 'background-color': '#f4f4f9', 'color': 'black', 'margin-bottom': '3px'}),
+                                html.Li(f"Wait Time: {wait_time:.2f} minutes", style={'padding': '3px', 'background-color': '#f4f4f9', 'color': 'black', 'margin-bottom': '3px'}),
+                                html.Li(f"Additional Travel Time: {additional_travel_time:.2f} minutes", style={'padding': '3px', 'background-color': '#f4f4f9', 'color': 'black', 'margin-bottom': '3px'})
+                                ]),
+                            html.Li(f"Shared Ride Fare: ${shared_ride_fare:.2f}", style={'padding': '3px', 'background-color': '#f4f4f9', 'color': 'black', 'margin-bottom': '3px'})
                         ])
                     )
 
@@ -618,7 +626,7 @@ def update_inputs_and_calculate_travel_time(clickData, n_clicks, start_over_clic
                             lon=last_segment_lons,
                             lat=last_segment_lats,
                             line=dict(width=2, color='lightblue'),
-                            name=f'Segment {i + 1} Walkin/Biking Segment'
+                            name=f'Segment {i + 1} Walking/Biking Segment'
                         )
 
                         all_route_traces.extend([first_segment_trace, transit_trace, last_segment_trace])
@@ -628,17 +636,14 @@ def update_inputs_and_calculate_travel_time(clickData, n_clicks, start_over_clic
                         seconds = int(total_time_seconds % 60)
 
                         output = [
-                            # html.Div(f"Calculated Travel Time: {hours} hours, {minutes} minutes, and {seconds} seconds", style={'padding': '10px', 'background-color': '#f4f4f9', 'color': 'black', 'margin-bottom': '10px'}),
-                            html.Div(f"Total Walking/Biking Distance: {total_walking_biking_distance_miles:.2f} miles", style={'padding': '10px', 'background-color': '#f4f4f9', 'color': 'black', 'margin-bottom': '10px'}),
-                            html.Div(f"Total Out of Vehicle Time: {total_out_of_vehicle_time}", style={'padding': '10px', 'background-color': '#f4f4f9', 'color': 'black', 'margin-bottom': '10px'}),
-                            html.Div(f"Total Walking/Biking Time: {total_walking_biking_time}", style={'padding': '10px', 'background-color': '#f4f4f9', 'color': 'black', 'margin-bottom': '10px'})
+                            html.Li(f"Calculated Travel Time: {hours} hours, {minutes} minutes, and {seconds} seconds", style={'padding': '3px', 'background-color': '#f4f4f9', 'color': 'black', 'margin-bottom': '3px', 'text-align': 'left'}),
+                            html.Li(f"Total Walking/Biking Distance: {total_walking_biking_distance_miles:.2f} miles", style={'padding': '3px', 'background-color': '#f4f4f9', 'color': 'black', 'margin-bottom': '3px', 'text-align': 'left'}),
+                            html.Li(f"Total Out of Vehicle Time: {total_out_of_vehicle_time}", style={'padding': '3px', 'background-color': '#f4f4f9', 'color': 'black', 'margin-bottom': '3px', 'text-align': 'left'}),
+                            html.Li(f"Total Walking/Biking Time: {total_walking_biking_time}", style={'padding': '3px', 'background-color': '#f4f4f9', 'color': 'black', 'margin-bottom': '3px', 'text-align': 'left'})
                         ]
                         
                         all_segments_details.append(
-                            html.Div([
-                                html.Div(f"Segment {i + 1} Travel Time: {hours} hours, {minutes} minutes, and {seconds} seconds", style={'padding': '10px', 'background-color': '#74bf0c', 'color': 'black', 'margin-bottom': '10px'}),
-                                html.Div(f"Transit Fare: ${transit_fare:.2f}", style={'padding': '10px', 'background-color': '#f4f4f9', 'color': 'black', 'margin-bottom': '10px'})
-                            ])
+                            html.Li(f"Segment {i + 1} Travel Time: {hours} hours, {minutes} minutes, and {seconds} seconds", style={'padding': '10px', 'background-color': '#f4f4f9', 'color': 'black', 'margin-bottom': '3px', 'text-align': 'left'}),
                         )
                         all_segments_details.extend(output)
 
@@ -669,7 +674,7 @@ def update_inputs_and_calculate_travel_time(clickData, n_clicks, start_over_clic
                         seconds = int(total_segment_travel_time_seconds % 60)
 
                         all_segments_details.append(
-                            html.Div(f"Segment {i + 1} Travel Time: {hours} hours, {minutes} minutes, and {seconds} seconds", style={'padding': '10px', 'background-color': '#74bf0c', 'color': 'black', 'margin-bottom': '10px'})
+                            html.Li(f"Segment {i + 1} Travel Time: {hours} hours, {minutes} minutes, and {seconds} seconds", style={'padding': '3px', 'background-color': '#f4f4f9', 'color': 'black', 'margin-bottom': '3px', 'text-align': 'left'}),
                         )
 
                     # Calculate slope if mode is WALK or BICYCLE
@@ -681,10 +686,10 @@ def update_inputs_and_calculate_travel_time(clickData, n_clicks, start_over_clic
                             slope_warning = walking_slope_warning(max_slope)
                             all_slopes.append(
                                 html.Div([
-                                    html.Div(f"Segment {i + 1} Mean Slope: {mean_slope:.2%}", style={'padding': '10px', 'background-color': '#f4f4f9', 'color': 'black'}),
-                                    html.Div(f"Segment {i + 1} Max Slope: {max_slope:.2%}", style={'padding': '10px', 'background-color': '#f4f4f9', 'color': 'black'}),
-                                    html.Div(slope_warning, style={'padding': '10px', 'background-color': '#f4f4f9', 'color': 'black'})
-                                ], style={'margin-bottom': '10px'})
+                                    html.Li(f"Segment {i + 1} Mean Slope: {mean_slope:.2%}", style={'padding': '3px', 'background-color': '#f4f4f9', 'color': 'black', 'text-align': 'left'}),
+                                    html.Li(f"Segment {i + 1} Max Slope: {max_slope:.2%}", style={'padding': '3px', 'background-color': '#f4f4f9', 'color': 'black', 'text-align': 'left'}),
+                                    html.Li(slope_warning, style={'padding': '3px', 'background-color': '#f4f4f9', 'color': 'black', 'text-align': 'left'})
+                                ], style={'margin-bottom': '3px'})
                             )
                         except Exception as e:
                             print(f"Error calculating slopes: {e}")
@@ -694,9 +699,9 @@ def update_inputs_and_calculate_travel_time(clickData, n_clicks, start_over_clic
             total_seconds = int(total_travel_time_seconds % 60)
 
             total_details = [
-                html.Div(f"Total Travel Time: {total_hours} hours, {total_minutes} minutes, and {total_seconds} seconds", style={'padding': '10px', 'background-color': '#74bf0c', 'color': 'black', 'margin-bottom': '10px'}),
-                html.Div(f"Total Distance: {total_distance_miles:.2f} miles", style={'padding': '10px', 'background-color': '#74bf0c', 'color': 'black', 'margin-bottom': '10px'}),
-                html.Div(f"Total Cost: ${total_cost:.2f}", style={'padding': '10px', 'background-color': '#74bf0c', 'color': 'black', 'margin-bottom': '10px'})
+                html.Li(f"Total Travel Time: {total_hours} hours, {total_minutes} minutes, and {total_seconds} seconds", style={'padding': '3px', 'background-color': '#f4f4f9', 'color': 'black', 'margin-bottom': '3px', 'text-align': 'left'}),
+                html.Li(f"Total Distance: {total_distance_miles:.2f} miles", style={'padding': '3px', 'background-color': '#f4f4f9', 'color': 'black', 'margin-bottom': '3px', 'text-align': 'left'}),
+                html.Li(f"Total Cost: ${total_cost:.2f}", style={'padding': '3px', 'background-color': '#f4f4f9', 'color': 'black', 'margin-bottom': '3px', 'text-align': 'left'})
             ]
 
             all_details = all_segments_details + total_details + all_slopes
@@ -738,7 +743,7 @@ def update_inputs_and_calculate_travel_time(clickData, n_clicks, start_over_clic
             if trip_mode == 'different':
                 selected_mode_summary = "Your modes of transport are: " + ", ".join(segment_modes[:len(coords_list) - 1])
                 if selected_mode_key:
-                    mode_styles[selected_mode_key]['background-color'] = '#93979C'
+                    mode_styles[selected_mode_key]['background-color'] = '#1c293a'
                     mode_styles[selected_mode_key]['color'] = 'white'
             else:
                 selected_mode_summary = ""
@@ -746,12 +751,12 @@ def update_inputs_and_calculate_travel_time(clickData, n_clicks, start_over_clic
                     mode_styles[selected_mode_key]['background-color'] = '#74bf0c'
                     mode_styles[selected_mode_key]['color'] = 'black'
 
-            return origin, destination, current_figure, dynamic_destinations, all_details, mode_styles['mode-transit-walk'], mode_styles['mode-transit-bike'], mode_styles['mode-car'], mode_styles['mode-bike'], mode_styles['mode-shared-ride'], mode_styles['mode-walk'], selected_mode_summary
+            return origin, destination, current_figure, dynamic_destinations, html.Ul(all_details), mode_styles['mode-transit-walk'], mode_styles['mode-transit-bike'], mode_styles['mode-car'], mode_styles['mode-bike'], mode_styles['mode-shared-ride'], mode_styles['mode-walk'], selected_mode_summary
 
         except Exception as e:
             import traceback
             print(traceback.format_exc())
-            return origin, destination, current_figure, dynamic_destinations, html.Div(f"Error calculating travel time: {str(e)}", style={'padding': '10px', 'background-color': '#74bf0c', 'color': 'black', 'margin-bottom': '10px'}), mode_styles['mode-transit-walk'], mode_styles['mode-transit-bike'], mode_styles['mode-car'], mode_styles['mode-bike'], mode_styles['mode-shared-ride'], mode_styles['mode-walk'], ''
+            return origin, destination, current_figure, dynamic_destinations, html.Li(f"Error calculating travel time: {str(e)}", style={'padding': '10px', 'background-color': '#f4f4f9', 'color': 'black', 'margin-bottom': '3px', 'text-align': 'left'}), mode_styles['mode-transit-walk'], mode_styles['mode-transit-bike'], mode_styles['mode-car'], mode_styles['mode-bike'], mode_styles['mode-shared-ride'], mode_styles['mode-walk'], ''
 
     if trigger in ['mode-transit-walk', 'mode-transit-bike', 'mode-car', 'mode-bike', 'mode-shared-ride', 'mode-walk']:
         # Preserve the origin and destination markers on the map
