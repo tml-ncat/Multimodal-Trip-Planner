@@ -74,7 +74,6 @@ A Plotly interface to show route and travel itinerary details for different tran
 ## Example
 ![Example Image](images/3-transit.png)
 ![Example Image](images/2-bike.png)
-#![Example Image](images/tra_time_optim.png)
 ![Example Image](images/1-shared.png)
 
 
