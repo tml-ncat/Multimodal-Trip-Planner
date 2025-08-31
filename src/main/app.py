@@ -2,17 +2,12 @@ from dash import Dash, html, dcc, Input, Output, State, callback_context, ALL, n
 import plotly.graph_objs as go
 import geopandas as gpd
 from shapely.geometry import Point, LineString
-# import r5py
+import r5py
 from datetime import datetime, date
 import numpy as np
 import os
 import rasterio
 
-try:
-    import r5py  # move into the function that needs it if possible
-except Exception as e:
-    r5py = None
-    R5PY_IMPORT_ERROR = e
 
 def get_elevation_from_dem(lat, lon, dem_path='path/to/your/dem/file.tif'):
     with rasterio.open(dem_path) as dem:
