@@ -2,12 +2,31 @@
 
 A Plotly and Dash interface to show route geometry and travel itinerary details for different transport modes, built on the `r5py` library (Fink et al., 2022).
 
+This tool is designed for research and public-sector evaluation of multimodal accessibility and traveler constraints. It supports scenario testing across modes using GTFS and OSM data and can optionally incorporate slope-based warnings using DEM elevation rasters.
+
 ## Libraries needed
 1. Pandas
 2. Numpy
 3. r5py
 4. Geopandas
 5. Dash/Plotly
+
+## Reproducibility (pinned dependencies)
+
+This project includes a `requirements.txt` with pinned versions for reproducibility.
+
+Install with:
+```bash
+pip install -r requirements.txt
+```
+
+Tested with (see `requirements.txt`):
+- r5py 1.0.7
+- pandas 2.3.3
+- numpy 2.4.0
+- geopandas 1.1.2
+- dash 3.3.0
+- plotly 6.5.0
 
 ## Quickstart
 
@@ -29,12 +48,17 @@ source .venv/bin/activate
 3. **Install dependencies**
 ```bash
 pip install --upgrade pip
-pip install r5py pandas numpy geopandas dash plotly
+pip install -r requirements.txt
 ```
 
-**Note:** `r5py` requires a Java Development Kit (JDK). If `r5py` fails to initialize, install a JDK and ensure Java is available on your system PATH.
+4. **Java (required by r5py)**
+- Recommended JDK: **Temurin / OpenJDK 17**
+- Verify Java is available:
+```bash
+java -version
+```
 
-4. **Run the application**
+5. **Run the application**
 ```bash
 cd src/main
 python app.py
@@ -104,9 +128,16 @@ Multimodal-Trip-Planner/
   images/
 ```
 
-**Important:**
-- If your app uses hardcoded paths, update the data file paths inside `src/main/app.py` to point to your local files.
-- If your app reads from a config file or environment variables, set them to match your data locations.
+## Configuration (how the app finds your data)
+
+This app currently expects local file paths inside `src/main/app.py`.
+
+To update data paths:
+1. Open `src/main/app.py`
+2. Search for the existing data path strings (common keywords: `gtfs`, `.osm.pbf`, `.tif`, `dem`, `elevation`)
+3. Replace those paths with your local file locations (for example, the `data/gtfs/`, `data/osm/`, and `data/dem/` paths shown above)
+
+Tip: If you move your data into `data/`, you should only need to update these path lines once.
 
 ## What outputs does it produce?
 
@@ -126,19 +157,16 @@ GitHub paths are case-sensitive, so `images/3-transit.png` is different from `im
 ![Example Image](images/2-bike.png)
 ![Example Image](images/1-shared.png)
 
-
 ### Demo videos
-- https://youtube.com/shorts/p4yhmIHe61c?si=IswgtzuFk_VxY9QE
-- https://youtu.be/7KgR7JX4FIc?si=DVt9lXw3NXHLcEJS
-- https://youtube.com/shorts/laQQebEbygo?si=0hdmQWixw5YLOoZ4
-- https://youtube.com/shorts/EqJQcEaSm_8?si=fzsFUy9wEO3MNdZZ
+- [Demo video 1 (Short)](https://youtube.com/shorts/p4yhmIHe61c?si=IswgtzuFk_VxY9QE)
+- [Demo video 2](https://youtu.be/7KgR7JX4FIc?si=DVt9lXw3NXHLcEJS)
+- [Demo video 3 (Short)](https://youtube.com/shorts/laQQebEbygo?si=0hdmQWixw5YLOoZ4)
+- [Demo video 4 (Short)](https://youtube.com/shorts/EqJQcEaSm_8?si=fzsFUy9wEO3MNdZZ)
 
 ## Documentation
-[R5py](https://r5py.readthedocs.io/en/stable/user-guide/user-manual/quickstart.html)
-
-[Dash](https://dash.plotly.com/tutorial)
-
-[Geopandas](https://geopandas.org/en/stable/docs.html)
+- [r5py Quickstart](https://r5py.readthedocs.io/en/stable/user-guide/user-manual/quickstart.html)
+- [Dash Tutorial](https://dash.plotly.com/tutorial)
+- [GeoPandas Documentation](https://geopandas.org/en/stable/docs.html)
 
 ## Features
 - Interactive map to display routes
@@ -147,13 +175,14 @@ GitHub paths are case-sensitive, so `images/3-transit.png` is different from `im
 - Responsive design for different devices
 
 ## Ongoing Work
-1. Work with multiple user criteria (for example: bike level of traffic stress)
-2.
+1. Add a `config.yaml` file for data paths (GTFS/OSM/DEM) and remove hardcoded file locations for easier reproducibility.
+2. Add export functionality (CSV/JSON) for itinerary summaries and route geometry (GeoJSON) to support documentation and scenario analysis.
+3. Add pinned dependencies (`requirements.txt`) and a minimal test script to validate environment setup.
 
 ## Note
 For slope data, you need to download elevation data (GeoTIFF) for the location of interest. File sizes can be large and may not be suitable to store directly in the repository.
 
-USGS download option: https://www.usgs.gov/tools/national-map-viewer
+- [USGS National Map Viewer (elevation downloads)](https://www.usgs.gov/tools/national-map-viewer)
 
 ## Contributing
 
