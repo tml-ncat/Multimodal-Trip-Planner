@@ -174,7 +174,7 @@ GitHub paths are case-sensitive, so `images/3-transit.png` is different from `im
 - Displays detailed travel statistics
 - Responsive design for different devices
 
-## Ongoing Work
+## Potential Enhancements
 1. Add a `config.yaml` file for data paths (GTFS/OSM/DEM) and remove hardcoded file locations for easier reproducibility.
 2. Add export functionality (CSV/JSON) for itinerary summaries and route geometry (GeoJSON) to support documentation and scenario analysis.
 3. Add pinned dependencies (`requirements.txt`) and a minimal test script to validate environment setup.
